@@ -8,9 +8,7 @@
 
 ## 🎥 Demo Video
 
-https://github.com/imashwin-max/FlowPilot-AI/assets/demo/flowpilot-demo.mp4
-
-> 📌 See the [Uploading the Demo Video](#-uploading-the-demo-video) section below for how to add this so it plays inline on GitHub.
+[![Watch the Demo](https://img.shields.io/badge/▶-Watch%20Demo%20Video-red?style=for-the-badge)](https://drive.google.com/file/d/1EQYiBinLBcbjGfjOYkGeVSwNhKxqJDSR/view?usp=sharing)
 
 ---
 
@@ -140,23 +138,6 @@ components/
 lib/
 supabase/
 ```
-
----
-
-## 📎 Uploading the Demo Video
-
-GitHub doesn't let you upload video files directly through the file browser UI, but here's the easiest way to get it hosted and playable inline in your README:
-
-1. Go to your repo → open any **Issue** (or create a new one) or a **Discussion**
-2. **Drag and drop your local video file** into the comment text box
-3. GitHub will upload it and auto-generate a link like:
-   ```
-   https://github.com/imashwin-max/FlowPilot-AI/assets/.../demo.mp4
-   ```
-4. Copy that link and replace the placeholder link at the top of this README under **🎥 Demo Video**
-5. You can close the issue afterward without submitting it — the uploaded file link stays active either way
-
-Once replaced, GitHub will render it as an inline playable video on your repo page.
 
 ---
 
