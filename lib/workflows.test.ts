@@ -63,8 +63,9 @@ describe("extractWorkflow (deterministic fallback)", () => {
   // behavior is intentional, since ambiguity detection depends on Gemini's
   // reasoning, not simple keyword matching. This test documents that
   // fallback contract explicitly so a future change can't silently break it.
-  it("never asks for clarification in the deterministic fallback, even for vague input", async () => {
+  it("asks for clarification on vague input in the deterministic fallback", async () => {
     const result = await extractWorkflow("hey");
-    expect(result.status).toBe("ok");
+    expect(result.status).toBe("clarify");
+    expect(result.question).toContain("Could you provide more details");
   });
 });
