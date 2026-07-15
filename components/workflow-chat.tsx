@@ -66,7 +66,7 @@ export function WorkflowChat() {
     <div className="grid gap-4 xl:grid-cols-[1fr_360px]">
       <Card className="min-h-[620px]">
         <CardContent className="flex min-h-[620px] flex-col p-0">
-          <div className="flex-1 space-y-4 overflow-y-auto p-5">
+          <div className="flex-1 space-y-4 overflow-y-auto p-5" role="log" aria-live="polite" aria-label="Workflow chat messages">
             {messages.map((item, index) => (
               <div key={index} className={`flex gap-3 ${item.role === "user" ? "justify-end" : "justify-start"}`}>
                 {item.role === "assistant" ? <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground"><Bot className="h-4 w-4" /></div> : null}
@@ -90,7 +90,18 @@ export function WorkflowChat() {
           </div>
           <div className="border-t p-4">
             <div className="flex gap-3">
-              <Textarea value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Describe a business request..." className="min-h-[72px]" />
+              <Textarea
+                value={message}
+                onChange={(event) => setMessage(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault();
+                    submit();
+                  }
+                }}
+                placeholder="Describe a business request... (Enter to send, Shift+Enter for a new line)"
+                className="min-h-[72px]"
+              />
               <Button onClick={submit} disabled={loading} size="icon" className="h-[72px] w-14 shrink-0" aria-label="Send request">
                 {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
               </Button>
