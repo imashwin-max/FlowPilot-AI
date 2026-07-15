@@ -30,7 +30,11 @@ export async function POST(request: Request) {
     const requester = typeof body.requester === "string" && body.requester.trim() ? body.requester.slice(0, 120) : undefined;
     const result = await createWorkflow({ message: body.message, requester });
 
-    return NextResponse.json(result, { status: 201 });
+    if (result.status === "clarify") {
+      return NextResponse.json({ status: "needs_clarification", question: result.question });
+    }
+
+    return NextResponse.json({ status: "created", request: result.request, extracted: result.extracted }, { status: 201 });
   } catch (error) {
     return safeErrorResponse(error, "Unable to create workflow");
   }

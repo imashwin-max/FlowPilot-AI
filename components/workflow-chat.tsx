@@ -21,6 +21,7 @@ const example = "I need leave tomorrow because of fever.";
 export function WorkflowChat() {
   const [message, setMessage] = useState(example);
   const [loading, setLoading] = useState(false);
+  const [pendingContext, setPendingContext] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
@@ -31,6 +32,7 @@ export function WorkflowChat() {
   async function submit() {
     if (!message.trim()) return;
     const current = message.trim();
+    const combined = pendingContext ? `${pendingContext}\n\nAdditional detail: ${current}` : current;
     setLoading(true);
     setMessages((items) => [...items, { role: "user", content: current }]);
     setMessage("");
@@ -39,11 +41,18 @@ export function WorkflowChat() {
       const response = await fetch("/api/workflows", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: current, requester: localStorage.getItem("flowpilot_profile_name") || "Demo User" })
+        body: JSON.stringify({ message: combined, requester: localStorage.getItem("flowpilot_profile_name") || "Demo User" })
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Workflow creation failed");
 
+      if (data.status === "needs_clarification") {
+        setPendingContext(combined);
+        setMessages((items) => [...items, { role: "assistant", content: data.question }]);
+        return;
+      }
+
+      setPendingContext(null);
       setMessages((items) => [
         ...items,
         {
@@ -110,7 +119,7 @@ export function WorkflowChat() {
         </CardContent>
       </Card>
       <div className="space-y-4">
-        {["Need vendor invoice approval by today for 18 lakh renewal.", "Request production log access for incident debugging ASAP.", "Need extra launch campaign budget for paid social creatives."].map((prompt) => (
+        {["Need vendor invoice approval by today for 18 lakh renewal.", "Request production log access for incident debugging ASAP.", "I need Friday off."].map((prompt) => (
           <button key={prompt} onClick={() => setMessage(prompt)} className="w-full rounded-lg border bg-card p-4 text-left text-sm leading-6 shadow-sm transition hover:bg-muted">
             {prompt}
           </button>

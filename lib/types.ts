@@ -31,7 +31,12 @@ export type ExtractedWorkflow = {
   priority: Priority;
   requiredApprover: string;
   summary: string;
+  confidence?: { requestType: number; requiredApprover: number };
 };
+
+export type ExtractionResult =
+  | { status: "ok"; data: ExtractedWorkflow }
+  | { status: "clarify"; question: string };
 
 export type DashboardMetrics = {
   total: number;
