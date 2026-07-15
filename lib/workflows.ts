@@ -116,7 +116,7 @@ export async function extractWorkflow(text: string): Promise<ExtractionResult> {
   if ((vague.length < 25 && !hasKeywords) || vague === "i need approval") {
     return {
       status: "clarify",
-      question: "Could you provide more details? What type of request is this and who should approve it?"
+      question: "Could you provide more details about a specific business request? (e.g., leave request, expense approval, IT access)"
     };
   }
 
