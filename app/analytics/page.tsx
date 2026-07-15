@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getDashboardMetrics } from "@/lib/workflows";
 import { percentage } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 export default async function AnalyticsPage() {
   const metrics = await getDashboardMetrics();
   const completed = metrics.approved + metrics.rejected;

@@ -2,6 +2,8 @@ import { AppShell } from "@/components/app-shell";
 import { ApprovalsBoard } from "@/components/approvals-board";
 import { listWorkflows } from "@/lib/workflows";
 
+export const dynamic = "force-dynamic";
+
 export default async function ApprovalsPage() {
   const requests = await listWorkflows();
   return (

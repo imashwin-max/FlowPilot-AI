@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getDashboardMetrics } from "@/lib/workflows";
 import { formatDate, percentage } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage() {
   const metrics = await getDashboardMetrics();
   const approvalRate = percentage(metrics.approved, metrics.total);
