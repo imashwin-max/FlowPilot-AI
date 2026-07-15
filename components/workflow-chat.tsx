@@ -36,13 +36,9 @@ export function WorkflowChat() {
     setMessage("");
 
     try {
-      const apiKey = localStorage.getItem("flowpilot_gemini_key") || "";
       const response = await fetch("/api/workflows", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(apiKey ? { "x-gemini-api-key": apiKey } : {})
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: current, requester: localStorage.getItem("flowpilot_profile_name") || "Demo User" })
       });
       const data = await response.json();
@@ -95,7 +91,7 @@ export function WorkflowChat() {
           <div className="border-t p-4">
             <div className="flex gap-3">
               <Textarea value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Describe a business request..." className="min-h-[72px]" />
-              <Button onClick={submit} disabled={loading} size="icon" className="h-[72px] w-14 shrink-0">
+              <Button onClick={submit} disabled={loading} size="icon" className="h-[72px] w-14 shrink-0" aria-label="Send request">
                 {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
               </Button>
             </div>

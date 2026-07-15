@@ -12,29 +12,37 @@ export function SettingsPanel() {
   const { theme, setTheme } = useTheme();
   const [name, setName] = useState("Demo Manager");
   const [email, setEmail] = useState("manager@flowpilot.ai");
-  const [apiKey, setApiKey] = useState("");
+  const [managerCode, setManagerCode] = useState("");
 
   useEffect(() => {
     setName(localStorage.getItem("flowpilot_profile_name") || "Demo Manager");
     setEmail(localStorage.getItem("flowpilot_profile_email") || "manager@flowpilot.ai");
-    setApiKey(localStorage.getItem("flowpilot_gemini_key") || "");
+    setManagerCode(localStorage.getItem("flowpilot_manager_code") || "");
   }, []);
 
   function save() {
     localStorage.setItem("flowpilot_profile_name", name);
     localStorage.setItem("flowpilot_profile_email", email);
-    localStorage.setItem("flowpilot_gemini_key", apiKey);
+    localStorage.setItem("flowpilot_manager_code", managerCode);
     toast.success("Settings saved");
   }
 
   return (
     <div className="grid gap-4 xl:grid-cols-2">
       <Card>
-        <CardHeader><CardTitle>Gemini API key</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Manager access code</CardTitle></CardHeader>
         <CardContent className="space-y-4">
-          <Input type="password" value={apiKey} onChange={(event) => setApiKey(event.target.value)} placeholder="AIza..." />
-          <p className="text-sm text-muted-foreground">Saved locally in this browser and sent only to FlowPilot workflow API calls.</p>
-          <Button onClick={save}><Save className="h-4 w-4" /> Save key</Button>
+          <Input
+            type="password"
+            value={managerCode}
+            onChange={(event) => setManagerCode(event.target.value)}
+            placeholder="Enter the code shared with managers"
+          />
+          <p className="text-sm text-muted-foreground">
+            Required to approve or reject requests on the Approvals page. Ask your admin for this code -
+            it is not stored anywhere except this browser.
+          </p>
+          <Button onClick={save}><Save className="h-4 w-4" /> Save code</Button>
         </CardContent>
       </Card>
       <Card>

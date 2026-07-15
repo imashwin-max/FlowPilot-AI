@@ -17,13 +17,25 @@ export function ApprovalsBoard({ initialRequests }: { initialRequests: WorkflowR
   async function decide(id: string, status: WorkflowStatus) {
     setLoadingId(id);
     try {
+      const managerCode = localStorage.getItem("flowpilot_manager_code") || "";
       const response = await fetch(`/api/workflows/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(managerCode ? { "x-manager-code": managerCode } : {})
+        },
         body: JSON.stringify({ status, comments: comments[id] || "", actor: localStorage.getItem("flowpilot_profile_name") || "Manager" })
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Update failed");
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error("Set your manager access code in Settings before approving or rejecting requests.");
+        }
+        if (response.status === 429) {
+          throw new Error("Too many actions too quickly. Wait a moment and try again.");
+        }
+        throw new Error(data.error || "Update failed");
+      }
       setRequests((items) => items.map((item) => (item.id === id ? data.workflow : item)));
       toast.success(`Request ${status}`, { description: data.workflow.title });
     } catch (error) {
