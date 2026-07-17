@@ -4,7 +4,7 @@ import type { WorkflowStatus } from "@/lib/types";
 import { assertManagerAuthorized, getClientKey, rateLimit, safeErrorResponse } from "@/lib/server-guards";
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const authError = assertManagerAuthorized(request);
+  const authError = await assertManagerAuthorized(request);
   if (authError) return authError;
 
   const { ok } = rateLimit(`patch:${getClientKey(request)}`, 20, 60_000);

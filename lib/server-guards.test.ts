@@ -24,17 +24,17 @@ describe("assertManagerAuthorized", () => {
     delete process.env.MANAGER_ACCESS_CODE;
   });
 
-  it("rejects requests with the wrong code when a code is configured", () => {
+  it("rejects requests with the wrong code when a code is configured", async () => {
     process.env.MANAGER_ACCESS_CODE = "correct-code";
     const request = new Request("https://example.com", { headers: { "x-manager-code": "wrong-code" } });
-    const result = assertManagerAuthorized(request);
+    const result = await assertManagerAuthorized(request);
     expect(result).not.toBeNull();
     expect(result?.status).toBe(401);
   });
 
-  it("allows requests with the correct code", () => {
+  it("allows requests with the correct code", async () => {
     process.env.MANAGER_ACCESS_CODE = "correct-code";
     const request = new Request("https://example.com", { headers: { "x-manager-code": "correct-code" } });
-    expect(assertManagerAuthorized(request)).toBeNull();
+    expect(await assertManagerAuthorized(request)).toBeNull();
   });
 });

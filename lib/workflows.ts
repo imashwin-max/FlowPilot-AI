@@ -121,31 +121,51 @@ export async function extractWorkflow(text: string): Promise<ExtractionResult> {
   };
 }
 
-export async function listWorkflows(): Promise<WorkflowRequest[]> {
+export async function listWorkflows(requesterFilter?: string): Promise<WorkflowRequest[]> {
   const supabase = createSupabaseServerClient();
-  if (!supabase) return demoRequests;
+  if (!supabase) {
+    if (requesterFilter) {
+      return demoRequests.filter((req) => req.requester === requesterFilter);
+    }
+    return demoRequests;
+  }
 
-  const { data, error } = await supabase
-    .from("workflow_requests")
-    .select("*")
-    .order("created_at", { ascending: false });
+  let query = supabase.from("workflow_requests").select("*");
+  if (requesterFilter) {
+    query = query.eq("requester", requesterFilter);
+  }
+
+  const { data, error } = await query.order("created_at", { ascending: false });
 
   if (error) throw error;
   return data as WorkflowRequest[];
 }
 
-export async function listActivities() {
+export async function listActivities(requesterFilter?: string) {
   const supabase = createSupabaseServerClient();
-  if (!supabase) return demoActivities;
+  if (!supabase) {
+    if (requesterFilter) {
+      const myIds = demoRequests.filter((r) => r.requester === requesterFilter).map((r) => r.id);
+      return demoActivities.filter((a) => a.workflow_id && myIds.includes(a.workflow_id));
+    }
+    return demoActivities;
+  }
 
   const { data, error } = await supabase
     .from("activity_logs")
     .select("*")
     .order("created_at", { ascending: false })
-    .limit(10);
+    .limit(100);
 
   if (error) throw error;
-  return data;
+
+  if (requesterFilter) {
+    const myWorkflows = await listWorkflows(requesterFilter);
+    const myIds = myWorkflows.map((w) => w.id);
+    return data.filter((activity) => activity.workflow_id && myIds.includes(activity.workflow_id)).slice(0, 10);
+  }
+
+  return data.slice(0, 10);
 }
 
 export async function createWorkflow(input: { message: string; requester?: string }): Promise<
@@ -228,8 +248,11 @@ export async function updateWorkflowStatus(id: string, status: WorkflowStatus, c
   return data as WorkflowRequest;
 }
 
-export async function getDashboardMetrics(): Promise<DashboardMetrics> {
-  const [requests, activities] = await Promise.all([listWorkflows(), listActivities()]);
+export async function getDashboardMetrics(requesterFilter?: string): Promise<DashboardMetrics> {
+  const [requests, activities] = await Promise.all([
+    listWorkflows(requesterFilter),
+    listActivities(requesterFilter)
+  ]);
   const total = requests.length;
   const pending = requests.filter((request) => request.status === "pending").length;
   const approved = requests.filter((request) => request.status === "approved").length;

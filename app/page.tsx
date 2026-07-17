@@ -1,89 +1,166 @@
 import Link from "next/link";
-import { ArrowRight, Bot, CheckCircle2, GitBranch, LineChart, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, Bot, CheckCircle2, GitBranch, LineChart, ShieldCheck, Sparkles, Zap, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const features = [
-  { icon: Bot, title: "AI intake", text: "Gemini reads plain language requests and turns them into structured workflow data." },
-  { icon: GitBranch, title: "Routing engine", text: "Departments, priorities, and approvers are assigned automatically from every request." },
-  { icon: ShieldCheck, title: "Approval control", text: "Managers approve, reject, and comment with an auditable activity trail." },
-  { icon: LineChart, title: "Live analytics", text: "Teams see bottlenecks, approval rates, trends, and department load in real time." }
+  { icon: Bot, title: "Natural Language Intake", text: "Submit approval requests in plain speech. Gemini handles entity extraction, severity evaluation, and structural conversion." },
+  { icon: GitBranch, title: "Automated Routing Engine", text: "Assign departments, select manager supervisors, calculate SLA timelines, and identify backups on the fly." },
+  { icon: ShieldCheck, title: "Unified Approval Console", text: "Track manager reviews, reject with comments, and audit an immutable timeline history of execution states." },
+  { icon: LineChart, title: "Executive Analytics", text: "Inspect department workloads, average response velocity, SLA breaches, and historical trends in real time." }
 ];
 
 export default function LandingPage() {
   return (
-    <main className="min-h-screen bg-background">
-      <section className="flow-grid relative overflow-hidden border-b">
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{
-            backgroundImage:
-              "linear-gradient(110deg, rgba(15,159,143,.90), rgba(240,107,58,.74)), url('https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=1800&auto=format&fit=crop')"
-          }}
-        />
-        <div className="absolute inset-0 bg-background/10" />
-        <div className="relative mx-auto flex min-h-[86vh] max-w-7xl flex-col justify-center px-6 py-20 text-white">
-          <div className="max-w-3xl animate-fade-up">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-md bg-white/14 px-3 py-1 text-sm backdrop-blur">
-              <Sparkles className="h-4 w-4" />
-              TakeOver&apos;26 Theme 2
+    <main className="min-h-screen bg-background relative overflow-hidden flex flex-col justify-between">
+      {/* Dynamic top gradient glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[450px] bg-gradient-to-b from-primary/5 via-transparent to-transparent pointer-events-none blur-3xl" />
+
+      {/* Modern Top Header */}
+      <header className="relative w-full max-w-7xl mx-auto px-6 h-20 flex items-center justify-between border-b border-border/40">
+        <div className="flex items-center gap-2">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-neutral-900 text-white dark:bg-white dark:text-black">
+            <Bot className="h-5 w-5" />
+          </div>
+          <span className="font-bold tracking-tight text-foreground">FlowPilot AI</span>
+        </div>
+        <div className="flex items-center gap-4">
+          <Button asChild variant="ghost" size="sm" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground">
+            <Link href="/dashboard">Dashboard</Link>
+          </Button>
+          <Button asChild size="sm" className="bg-primary text-primary-foreground hover:bg-primary/95 text-xs font-semibold uppercase tracking-wider rounded-lg px-4 shadow-sm">
+            <Link href="/chat">Launch Portal <ChevronRight className="h-3 w-3 ml-1" /></Link>
+          </Button>
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <section className="relative w-full max-w-7xl mx-auto px-6 pt-20 pb-16 flex flex-col items-center text-center">
+        <div className="max-w-4xl animate-fade-up">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-primary/5 border border-primary/10 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-primary">
+            <Sparkles className="h-3.5 w-3.5 animate-pulse" />
+            AI-Driven Approval Orchestration
+          </div>
+          <h1 className="text-4xl font-extrabold tracking-tight sm:text-6xl md:text-7xl bg-gradient-to-b from-foreground via-foreground to-foreground/80 bg-clip-text text-transparent">
+            Workflow Command Center
+          </h1>
+          <p className="mt-6 max-w-2xl mx-auto text-lg md:text-xl leading-relaxed text-muted-foreground">
+            FlowPilot AI converts raw natural-language business requests into auditable, intelligently-routed workflows, department approvals, and capacity simulations.
+          </p>
+          <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+            <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/95 transition-all shadow-md px-8 rounded-lg font-semibold text-sm">
+              <Link href="/dashboard">Enter Workspace <ArrowRight className="h-4 w-4 ml-2" /></Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="border-border hover:bg-muted/40 transition-all px-8 rounded-lg font-semibold text-sm">
+              <Link href="/chat">Try AI Intake Chat</Link>
+            </Button>
+          </div>
+        </div>
+
+        {/* Visual Engine flow Preview */}
+        <div className="mt-20 w-full max-w-5xl rounded-xl border border-border/50 bg-card/50 p-1.5 shadow-2xl backdrop-blur-sm relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 via-transparent to-transparent pointer-events-none" />
+          <div className="rounded-lg border border-border/40 bg-background/50 p-6 md:p-8 flex flex-col md:flex-row gap-6 items-stretch">
+            
+            {/* Input prompt */}
+            <div className="flex-1 flex flex-col justify-between text-left p-4 rounded-lg bg-card border border-border/45">
+              <div>
+                <span className="text-[10px] font-bold tracking-wider text-primary uppercase">Natural Language Request</span>
+                <p className="mt-2 text-sm text-foreground italic font-medium">
+                  &ldquo;I need to order an M3 Macbook Pro upgrade by this Friday because my local dev compile times are slowing project deployment. Estimated budget is $2,800. Project launch is scheduled for next month.&rdquo;
+                </p>
+              </div>
+              <div className="mt-6 flex items-center gap-2 text-xs text-muted-foreground pt-4 border-t border-border/30">
+                <Bot className="h-4 w-4 text-primary" /> Extracted payload generated instantly
+              </div>
             </div>
-            <h1 className="text-5xl font-semibold leading-tight md:text-7xl">FlowPilot AI</h1>
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-white/90">
-              A production-ready workflow command center that turns business requests into routed approvals, activity logs, and executive analytics.
-            </p>
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-              <Button asChild size="lg" className="bg-white text-slate-950 hover:bg-white/90">
-                <Link href="/dashboard">Open dashboard <ArrowRight className="h-4 w-4" /></Link>
-              </Button>
-              <Button asChild size="lg" variant="outline" className="border-white/50 bg-white/10 text-white hover:bg-white/20">
-                <Link href="/chat">Try AI workflow chat</Link>
-              </Button>
+
+            {/* Transition Arrow */}
+            <div className="flex items-center justify-center shrink-0">
+              <div className="h-10 w-10 rounded-full border border-border/50 bg-background flex items-center justify-center shadow-sm">
+                <ArrowRight className="h-5 w-5 text-muted-foreground rotate-90 md:rotate-0" />
+              </div>
             </div>
+
+            {/* Extracted result schema */}
+            <div className="flex-1 text-left p-4 rounded-lg bg-slate-950 text-slate-300 font-mono text-xs flex flex-col justify-between">
+              <div>
+                <span className="text-[10px] font-bold tracking-wider text-emerald-400 uppercase">Engine Routing Payload</span>
+                <pre className="mt-2 overflow-x-auto text-[11px] text-slate-100/90 leading-relaxed">
+{`{
+  "title": "Macbook Pro Hardware Upgrade",
+  "department": "Engineering / IT Support",
+  "priority": "high",
+  "approver": "Lisa Wang (DevOps Lead)",
+  "sla_hours": 12,
+  "requires_coverage": false
+}`}
+                </pre>
+              </div>
+              <div className="mt-4 flex items-center gap-1.5 text-[10px] text-emerald-500 font-semibold uppercase tracking-wider pt-3 border-t border-slate-800">
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" /> Auto-routed to department lead
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-16">
-        <div className="grid gap-5 md:grid-cols-4">
-          {features.map((feature) => (
-            <div key={feature.title} className="rounded-lg border bg-card p-5 shadow-sm">
-              <feature.icon className="h-6 w-6 text-primary" />
-              <h2 className="mt-4 font-semibold">{feature.title}</h2>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">{feature.text}</p>
+      {/* Feature Grid */}
+      <section className="w-full max-w-7xl mx-auto px-6 py-20 border-t border-border/40 relative z-10">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {features.map((feature, idx) => (
+            <div key={idx} className="rounded-xl border border-border/50 bg-card p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 group flex flex-col justify-between">
+              <div>
+                <div className="h-10 w-10 rounded-lg bg-primary/5 text-primary flex items-center justify-center border border-primary/10 group-hover:scale-105 transition-all">
+                  <feature.icon className="h-5 w-5" />
+                </div>
+                <h3 className="mt-4 font-bold text-base text-foreground tracking-tight">{feature.title}</h3>
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{feature.text}</p>
+              </div>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="border-y bg-card">
-        <div className="mx-auto grid max-w-7xl gap-10 px-6 py-16 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-          <div>
-            <h2 className="text-3xl font-semibold">Architecture that judges can understand in 20 seconds.</h2>
-            <p className="mt-4 text-muted-foreground">
-              The MVP connects a natural-language request interface, Gemini extraction, a workflow engine, Supabase persistence, and analytics surfaces.
+      {/* Sub Section Details */}
+      <section className="w-full border-t border-border/40 bg-card/25 backdrop-blur-sm py-16">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col lg:flex-row lg:items-center justify-between gap-10">
+          <div className="max-w-xl">
+            <span className="text-[10px] font-bold tracking-wider text-primary uppercase">Risk & Capacity Management</span>
+            <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight text-foreground mt-2">
+              Predictive simulation for staff coverage and project SLAs.
+            </h2>
+            <p className="mt-4 text-xs md:text-sm leading-relaxed text-muted-foreground">
+              Approved requests must respect team availability and client agreements. FlowPilot AI lets managers analyze criticality scores, active meeting overhead, and search backing coverage to prevent project delays.
             </p>
+            <div className="mt-6">
+              <Button asChild size="sm" variant="outline" className="border-border rounded-lg text-xs font-semibold">
+                <Link href="/impact-simulator" className="flex items-center gap-1">
+                  <Zap className="h-3.5 w-3.5 text-amber-500" /> Open Simulator Sandbox
+                </Link>
+              </Button>
+            </div>
           </div>
-          <div className="grid gap-3 sm:grid-cols-5">
-            {["User request", "Gemini JSON", "Workflow engine", "Supabase", "Dashboards"].map((step, index) => (
-              <div key={step} className="relative rounded-lg border bg-background p-4 text-sm font-medium shadow-sm">
-                <CheckCircle2 className="mb-3 h-5 w-5 text-primary" />
+          <div className="grid gap-3 sm:grid-cols-4 lg:w-[50%]">
+            {["Request Intake", "JSON Extract", "SLA Assignment", "Audit Trail"].map((step, index) => (
+              <div key={step} className="rounded-lg border border-border/50 bg-background p-4 text-xs font-semibold text-foreground text-center flex flex-col items-center justify-center gap-2 shadow-sm">
+                <div className="h-6 w-6 rounded-full bg-primary/10 text-primary font-mono text-[10px] flex items-center justify-center font-bold">{index + 1}</div>
                 {step}
-                {index < 4 ? <ArrowRight className="absolute -right-5 top-1/2 hidden h-5 w-5 -translate-y-1/2 text-muted-foreground sm:block" /> : null}
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-6 px-6 py-16 md:flex-row md:items-center">
-        <div>
-          <h2 className="text-3xl font-semibold">Ready for the hackathon demo loop.</h2>
-          <p className="mt-2 text-muted-foreground">Create a request, route it, approve it, and watch the analytics move.</p>
+      {/* Footer */}
+      <footer className="w-full max-w-7xl mx-auto px-6 py-8 border-t border-border/30 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
+        <div>&copy; {new Date().getFullYear()} FlowPilot AI. All rights reserved.</div>
+        <div className="flex gap-4">
+          <Link href="/dashboard" className="hover:text-foreground">Console</Link>
+          <Link href="/chat" className="hover:text-foreground">Intake Chat</Link>
+          <Link href="/settings" className="hover:text-foreground">Settings</Link>
         </div>
-        <Button asChild size="lg">
-          <Link href="/chat">Launch FlowPilot <ArrowRight className="h-4 w-4" /></Link>
-        </Button>
-      </section>
+      </footer>
     </main>
   );
 }

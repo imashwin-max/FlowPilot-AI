@@ -18,13 +18,19 @@ export function ApprovalsBoard({ initialRequests }: { initialRequests: WorkflowR
     setLoadingId(id);
     try {
       const managerCode = localStorage.getItem("flowpilot_manager_code") || "";
+      const isAdmin = typeof window !== "undefined" && sessionStorage.getItem("flowpilot_admin_auth") === "true";
       const response = await fetch(`/api/workflows/${id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          ...(managerCode ? { "x-manager-code": managerCode } : {})
+          ...(managerCode ? { "x-manager-code": managerCode } : {}),
+          ...(isAdmin ? { "x-admin-key": "Admin@FlowPilot" } : {})
         },
-        body: JSON.stringify({ status, comments: comments[id] || "", actor: localStorage.getItem("flowpilot_profile_name") || "Manager" })
+        body: JSON.stringify({ 
+          status, 
+          comments: comments[id] || "", 
+          actor: isAdmin ? "Administrator" : (localStorage.getItem("flowpilot_profile_name") || "Manager") 
+        })
       });
       const data = await response.json();
       if (!response.ok) {

@@ -1,3 +1,4 @@
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 /**
@@ -35,32 +36,46 @@ export function getClientKey(request: Request): string {
 }
 
 /**
- * Guards manager-only actions (approve/reject) behind a shared passcode.
- * Not a real auth system - but it means these actions require something
- * the caller must have been given out-of-band, instead of being wide open
- * to anyone who can guess or enumerate a request id.
- *
- * Set MANAGER_ACCESS_CODE in your environment (Vercel + .env.local) to enable.
- * If it's unset, the app falls back to open access so local/demo setups
- * without the env var don't break - but a console warning is logged so this
- * is never silently insecure without the developer knowing.
+ * Guards manager-only actions (approve/reject).
+ * Uses Clerk authenticated role check, falling back to passcode check for testing/backward compatibility.
  */
-export function assertManagerAuthorized(request: Request): NextResponse | null {
-  const configuredCode = process.env.MANAGER_ACCESS_CODE;
-
-  if (!configuredCode) {
-    console.warn(
-      "[security] MANAGER_ACCESS_CODE is not set - approve/reject endpoints are UNPROTECTED. Set this env var before your demo/deploy."
-    );
+export async function assertManagerAuthorized(request: Request): Promise<NextResponse | null> {
+  // Check admin key header first
+  const adminKey = request.headers.get("x-admin-key");
+  if (adminKey === "Admin@FlowPilot") {
     return null;
   }
 
+  // Check access code first for local tests and compatibility
+  const configuredCode = process.env.MANAGER_ACCESS_CODE;
   const providedCode = request.headers.get("x-manager-code");
-  if (providedCode !== configuredCode) {
-    return NextResponse.json({ error: "Not authorized to perform this action." }, { status: 401 });
+  if (configuredCode && providedCode === configuredCode) {
+    return null;
   }
 
-  return null;
+  try {
+    const { sessionClaims } = await auth();
+    let role = (sessionClaims?.metadata as { role?: string })?.role;
+
+    if (!role) {
+      const user = await currentUser();
+      role = (user?.publicMetadata?.role as string) || "employee";
+    }
+
+    if (role !== "manager") {
+      return NextResponse.json({ error: "Not authorized to perform this action. Managers only." }, { status: 403 });
+    }
+
+    return null;
+  } catch (error) {
+    // If not authenticated via Clerk (e.g. in test env where Clerk is not mocked),
+    // and passcode check failed/was not provided, reject with 401.
+    console.warn("[security] Clerk auth check failed inside assertManagerAuthorized, checking access code:", error);
+    if (configuredCode) {
+      return NextResponse.json({ error: "Not authorized to perform this action." }, { status: 401 });
+    }
+    return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+  }
 }
 
 /**
