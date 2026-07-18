@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Bot, Loader2, Send, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,45 @@ type ChatMessage = {
 const example = "I need leave tomorrow because of fever.";
 
 export function WorkflowChat() {
+  const hasClerkKeys = typeof window !== "undefined" && !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
+  if (hasClerkKeys) {
+    return <ClerkWorkflowChat />;
+  }
+
+  return <DemoWorkflowChat />;
+}
+
+function ClerkWorkflowChat() {
   const { user } = useUser();
+  const requesterName = user
+    ? `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.username || user.primaryEmailAddress?.emailAddress || "Demo User"
+    : "Demo User";
+
+  return <BaseWorkflowChat requesterName={requesterName} />;
+}
+
+function DemoWorkflowChat() {
+  const [requesterName, setRequesterName] = useState("Demo Employee");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const profileName = localStorage.getItem("flowpilot_profile_name");
+      if (profileName) {
+        setRequesterName(profileName);
+      } else {
+        const match = document.cookie.match(/(^| )flowpilot_mock_role=([^;]+)/);
+        if (match) {
+          setRequesterName(match[2] === "manager" ? "Demo Manager" : "Demo Employee");
+        }
+      }
+    }
+  }, []);
+
+  return <BaseWorkflowChat requesterName={requesterName} />;
+}
+
+function BaseWorkflowChat({ requesterName }: { requesterName: string }) {
   const [message, setMessage] = useState(example);
   const [loading, setLoading] = useState(false);
   const [pendingContext, setPendingContext] = useState<string | null>(null);
@@ -33,24 +71,6 @@ export function WorkflowChat() {
 
   async function submit() {
     if (!message.trim()) return;
-
-    let requesterName = "Demo User";
-    const hasClerkKeys = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
-
-    if (hasClerkKeys && user) {
-      requesterName = `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.username || user.primaryEmailAddress?.emailAddress || "Demo User";
-    } else {
-      const profileName = localStorage.getItem("flowpilot_profile_name");
-      if (profileName) {
-        requesterName = profileName;
-      } else {
-        const match = document.cookie.match(/(^| )flowpilot_mock_role=([^;]+)/);
-        if (match) {
-          requesterName = match[2] === "manager" ? "Demo Manager" : "Demo Employee";
-        }
-      }
-    }
-
     const current = message.trim();
     const combined = pendingContext ? `${pendingContext}\n\nAdditional detail: ${current}` : current;
     setLoading(true);
