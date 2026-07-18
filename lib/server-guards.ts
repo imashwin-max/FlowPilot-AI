@@ -37,13 +37,26 @@ export function getClientKey(request: Request): string {
 }
 
 /**
+ * Checks the x-admin-key header against a server-only environment variable.
+ * Replaces a previous hardcoded credential ("Admin@FlowPilot") that was
+ * committed to source control and shipped in the client JS bundle - anyone
+ * reading the public GitHub repo or browser devtools could read that literal
+ * string and bypass every authorization check in the app. Environment
+ * variables are never committed to git and never sent to the browser unless
+ * explicitly prefixed NEXT_PUBLIC_, so this closes that hole.
+ */
+export function isAdminAuthorized(request: Request): boolean {
+  const configuredAdminCode = process.env.ADMIN_ACCESS_CODE;
+  const providedAdminKey = request.headers.get("x-admin-key");
+  return !!configuredAdminCode && providedAdminKey === configuredAdminCode;
+}
+
+/**
  * Guards manager-only actions (approve/reject).
  * Uses Clerk authenticated role check, falling back to passcode check for testing/backward compatibility.
  */
 export async function assertManagerAuthorized(request: Request): Promise<NextResponse | null> {
-  // Check admin key header first
-  const adminKey = request.headers.get("x-admin-key");
-  if (adminKey === "Admin@FlowPilot") {
+  if (isAdminAuthorized(request)) {
     return null;
   }
 
@@ -56,12 +69,19 @@ export async function assertManagerAuthorized(request: Request): Promise<NextRes
 
   const hasClerkKeys = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
   if (!hasClerkKeys) {
-    const cookieStore = await cookies();
-    const role = cookieStore.get("flowpilot_mock_role")?.value || "";
-    if (role !== "manager") {
-      return NextResponse.json({ error: "Not authorized to perform this action. Managers only." }, { status: 403 });
+    try {
+      const cookieStore = await cookies();
+      const role = cookieStore.get("flowpilot_mock_role")?.value || "";
+      if (role !== "manager") {
+        return NextResponse.json({ error: "Not authorized to perform this action. Managers only." }, { status: 403 });
+      }
+      return null;
+    } catch (error) {
+      // cookies() throws outside a real request context (e.g. unit tests).
+      // Fail closed - treat as unauthenticated rather than crashing.
+      console.warn("[security] Could not read mock role cookie, denying by default:", error);
+      return NextResponse.json({ error: "Not authorized to perform this action." }, { status: 401 });
     }
-    return null;
   }
 
   try {

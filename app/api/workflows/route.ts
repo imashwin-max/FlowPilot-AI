@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createWorkflow, listWorkflows } from "@/lib/workflows";
-import { getClientKey, rateLimit, safeErrorResponse } from "@/lib/server-guards";
+import { getClientKey, isAdminAuthorized, rateLimit, safeErrorResponse } from "@/lib/server-guards";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
 
@@ -8,8 +8,7 @@ const MAX_MESSAGE_LENGTH = 2000;
 
 export async function GET(request: Request) {
   try {
-    const adminKey = request.headers.get("x-admin-key");
-    if (adminKey === "Admin@FlowPilot") {
+    if (isAdminAuthorized(request)) {
       return NextResponse.json({ requests: await listWorkflows() });
     }
 

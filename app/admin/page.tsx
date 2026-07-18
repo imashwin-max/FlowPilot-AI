@@ -82,8 +82,9 @@ export default function AdminPage() {
   async function fetchAdminData() {
     setLoading(true);
     try {
+      const adminKey = typeof window !== "undefined" ? sessionStorage.getItem("flowpilot_admin_key") || "" : "";
       const headers = {
-        "x-admin-key": "Admin@FlowPilot"
+        "x-admin-key": adminKey
       };
 
       const [metricsRes, workflowsRes] = await Promise.all([
@@ -108,21 +109,36 @@ export default function AdminPage() {
     }
   }
 
-  function handleLogin(event: React.FormEvent) {
+  async function handleLogin(event: React.FormEvent) {
     event.preventDefault();
-    if (password === "Admin@FlowPilot") {
+    try {
+      const response = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password })
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        setLoginError(data.error || "Invalid password credentials.");
+        toast.error("Access denied.");
+        return;
+      }
+
       sessionStorage.setItem("flowpilot_admin_auth", "true");
+      sessionStorage.setItem("flowpilot_admin_key", password);
       setIsAuthenticated(true);
       setLoginError("");
       toast.success("Welcome back, Administrator.");
-    } else {
-      setLoginError("Invalid password credentials.");
+    } catch {
+      setLoginError("Unable to reach the server. Please try again.");
       toast.error("Access denied.");
     }
   }
 
   function handleLogout() {
     sessionStorage.removeItem("flowpilot_admin_auth");
+    sessionStorage.removeItem("flowpilot_admin_key");
     setIsAuthenticated(false);
     setMetrics(null);
     setRequests([]);

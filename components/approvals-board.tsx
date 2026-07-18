@@ -19,12 +19,13 @@ export function ApprovalsBoard({ initialRequests }: { initialRequests: WorkflowR
     try {
       const managerCode = localStorage.getItem("flowpilot_manager_code") || "";
       const isAdmin = typeof window !== "undefined" && sessionStorage.getItem("flowpilot_admin_auth") === "true";
+      const adminKey = isAdmin ? sessionStorage.getItem("flowpilot_admin_key") || "" : "";
       const response = await fetch(`/api/workflows/${id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           ...(managerCode ? { "x-manager-code": managerCode } : {}),
-          ...(isAdmin ? { "x-admin-key": "Admin@FlowPilot" } : {})
+          ...(isAdmin ? { "x-admin-key": adminKey } : {})
         },
         body: JSON.stringify({ 
           status, 

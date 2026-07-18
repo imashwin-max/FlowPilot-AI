@@ -1,13 +1,12 @@
 import { NextResponse } from "next/server";
 import { getDashboardMetrics } from "@/lib/workflows";
-import { safeErrorResponse } from "@/lib/server-guards";
+import { isAdminAuthorized, safeErrorResponse } from "@/lib/server-guards";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
 
 export async function GET(request: Request) {
   try {
-    const adminKey = request.headers.get("x-admin-key");
-    if (adminKey === "Admin@FlowPilot") {
+    if (isAdminAuthorized(request)) {
       return NextResponse.json(await getDashboardMetrics());
     }
 
