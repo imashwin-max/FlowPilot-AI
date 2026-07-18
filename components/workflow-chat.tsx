@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { PriorityBadge, StatusBadge } from "@/components/status-badge";
 import type { ExtractedWorkflow, WorkflowRequest } from "@/lib/types";
+import { useUser } from "@clerk/nextjs";
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -19,6 +20,7 @@ type ChatMessage = {
 const example = "I need leave tomorrow because of fever.";
 
 export function WorkflowChat() {
+  const { user } = useUser();
   const [message, setMessage] = useState(example);
   const [loading, setLoading] = useState(false);
   const [pendingContext, setPendingContext] = useState<string | null>(null);
@@ -31,6 +33,24 @@ export function WorkflowChat() {
 
   async function submit() {
     if (!message.trim()) return;
+
+    let requesterName = "Demo User";
+    const hasClerkKeys = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
+    if (hasClerkKeys && user) {
+      requesterName = `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.username || user.primaryEmailAddress?.emailAddress || "Demo User";
+    } else {
+      const profileName = localStorage.getItem("flowpilot_profile_name");
+      if (profileName) {
+        requesterName = profileName;
+      } else {
+        const match = document.cookie.match(/(^| )flowpilot_mock_role=([^;]+)/);
+        if (match) {
+          requesterName = match[2] === "manager" ? "Demo Manager" : "Demo Employee";
+        }
+      }
+    }
+
     const current = message.trim();
     const combined = pendingContext ? `${pendingContext}\n\nAdditional detail: ${current}` : current;
     setLoading(true);
@@ -41,7 +61,7 @@ export function WorkflowChat() {
       const response = await fetch("/api/workflows", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: combined, requester: localStorage.getItem("flowpilot_profile_name") || "Demo User" })
+        body: JSON.stringify({ message: combined, requester: requesterName })
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Workflow creation failed");
