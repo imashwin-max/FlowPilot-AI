@@ -1,12 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Bot, Home, LayoutDashboard, Inbox, CheckSquare, BarChart3, Settings, Menu, X, Zap, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserButton, useUser } from "@clerk/nextjs";
-import { useEffect } from "react";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -19,8 +18,37 @@ const navItems = [
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [activeRole, setActiveRole] = useState<string>("manager");
+
   const hasClerkKeys = typeof window !== "undefined" && !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const match = document.cookie.match(/(^| )flowpilot_mock_role=([^;]+)/);
+      if (match) {
+        setActiveRole(match[2]);
+      }
+    }
+  }, []);
+
+  const handleSwitchRole = () => {
+    const newRole = activeRole === "manager" ? "employee" : "manager";
+    document.cookie = `flowpilot_mock_role=${newRole}; path=/; max-age=31536000`;
+    setActiveRole(newRole);
+    setProfileDropdownOpen(false);
+    window.location.reload();
+  };
+
+  const handleSignOut = () => {
+    document.cookie = "flowpilot_mock_role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+    setProfileDropdownOpen(false);
+    router.push("/");
+    router.refresh();
+  };
+
   const displayedNavItems = navItems;
 
   return (
@@ -79,8 +107,32 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {hasClerkKeys ? (
               <UserButton />
             ) : (
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs uppercase shadow-inner border border-primary/20">
-                FP
+              <div className="relative">
+                <button
+                  onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs uppercase shadow-inner border border-primary/20 transition-all hover:bg-primary/20"
+                >
+                  {activeRole === "manager" ? "DM" : "DE"}
+                </button>
+                {profileDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 rounded-md border border-border bg-card p-1 shadow-lg z-50 text-xs">
+                    <div className="px-3 py-2 text-muted-foreground border-b border-border/50">
+                      Logged in as <span className="font-semibold text-foreground uppercase">{activeRole}</span> (Demo)
+                    </div>
+                    <button
+                      onClick={handleSwitchRole}
+                      className="w-full text-left px-3 py-2 hover:bg-muted/50 rounded-sm transition-colors text-foreground font-medium"
+                    >
+                      Switch to {activeRole === "manager" ? "Employee" : "Manager"}
+                    </button>
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full text-left px-3 py-2 hover:bg-red-500/10 text-red-500 rounded-sm transition-colors font-medium border-t border-border/50"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>

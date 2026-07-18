@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getDashboardMetrics } from "@/lib/workflows";
 import { safeErrorResponse } from "@/lib/server-guards";
 import { auth, currentUser } from "@clerk/nextjs/server";
+import { cookies } from "next/headers";
 
 export async function GET(request: Request) {
   try {
@@ -31,8 +32,9 @@ export async function GET(request: Request) {
         }
       }
     } else {
-      role = "manager";
-      requesterFilter = undefined;
+      const cookieStore = await cookies();
+      role = cookieStore.get("flowpilot_mock_role")?.value || "manager";
+      requesterFilter = role === "manager" ? undefined : "Demo Employee";
     }
 
     return NextResponse.json(await getDashboardMetrics(requesterFilter));

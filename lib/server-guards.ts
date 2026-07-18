@@ -1,5 +1,6 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 
 /**
  * Very small in-memory sliding-window rate limiter.
@@ -55,6 +56,11 @@ export async function assertManagerAuthorized(request: Request): Promise<NextRes
 
   const hasClerkKeys = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
   if (!hasClerkKeys) {
+    const cookieStore = await cookies();
+    const role = cookieStore.get("flowpilot_mock_role")?.value || "";
+    if (role !== "manager") {
+      return NextResponse.json({ error: "Not authorized to perform this action. Managers only." }, { status: 403 });
+    }
     return null;
   }
 

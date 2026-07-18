@@ -7,6 +7,8 @@ import Link from "next/link";
 import { getDashboardMetrics } from "@/lib/workflows";
 import { formatDate, percentage } from "@/lib/utils";
 import { auth, currentUser } from "@clerk/nextjs/server";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -32,8 +34,12 @@ export default async function DashboardPage() {
       }
     }
   } else {
-    role = "manager";
-    requesterFilter = undefined;
+    const cookieStore = await cookies();
+    role = cookieStore.get("flowpilot_mock_role")?.value || "";
+    if (!role) {
+      redirect("/sign-in");
+    }
+    requesterFilter = role === "manager" ? undefined : "Demo Employee";
   }
 
   const metrics = await getDashboardMetrics(requesterFilter);

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createWorkflow, listWorkflows } from "@/lib/workflows";
 import { getClientKey, rateLimit, safeErrorResponse } from "@/lib/server-guards";
 import { auth, currentUser } from "@clerk/nextjs/server";
+import { cookies } from "next/headers";
 
 const MAX_MESSAGE_LENGTH = 2000;
 
@@ -33,8 +34,9 @@ export async function GET(request: Request) {
         }
       }
     } else {
-      role = "manager";
-      requesterFilter = undefined;
+      const cookieStore = await cookies();
+      role = cookieStore.get("flowpilot_mock_role")?.value || "manager";
+      requesterFilter = role === "manager" ? undefined : "Demo Employee";
     }
 
     return NextResponse.json({ requests: await listWorkflows(requesterFilter) });
@@ -68,7 +70,9 @@ export async function POST(request: Request) {
       }
       requester = `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.username || user.emailAddresses[0]?.emailAddress || "Demo User";
     } else {
-      requester = body.requester || "Demo User";
+      const cookieStore = await cookies();
+      const role = cookieStore.get("flowpilot_mock_role")?.value || "manager";
+      requester = body.requester || (role === "manager" ? "Demo Manager" : "Demo Employee");
     }
     const result = await createWorkflow({ message: body.message, requester });
 
