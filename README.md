@@ -2,13 +2,13 @@
 
 **FlowPilot AI** is a production-ready Next.js application built for the **TakeOver'26 Theme 2** challenge. It transforms plain-language business requests into routed approvals, team capacity simulations, audit logs, and executive analytics.
 
-🔗 **Live Demo:** [flow-pilot-ai-xi.vercel.app](https://flow-pilot-ai-xi.vercel.app/)
+🔗 **Live Demo:** [flow-pilot-ai-zeta.vercel.app/](https://flow-pilot-ai-zeta.vercel.app/)
 
 ---
 
 ## 🎥 Demo Video
 
-[![Watch the Demo](https://img.shields.io/badge/▶-Watch%20Demo%20Video-red?style=for-the-badge)](https://drive.google.com/file/d/1EQYiBinLBcbjGfjOYkGeVSwNhKxqJDSR/view?usp=sharing)
+[![Watch the Demo](https://img.shields.io/badge/▶-Watch%20Demo%20Video-red?style=for-the-badge)](https://drive.google.com/drive/folders/1g6uqUeOiF1MkjZdIYEOJyiwnTJiQqwR2?usp=sharing)
 
 ---
 
