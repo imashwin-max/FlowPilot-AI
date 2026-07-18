@@ -19,7 +19,8 @@ const navItems = [
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
-
+  
+  const hasClerkKeys = typeof window !== "undefined" && !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
   const displayedNavItems = navItems;
 
   return (
@@ -75,7 +76,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Link href="/chat" className="rounded-lg bg-primary px-4 py-2 text-xs font-bold uppercase tracking-wider text-primary-foreground hover:bg-primary/95 transition-all shadow-sm">
               New workflow
             </Link>
-            <UserButton />
+            {hasClerkKeys ? (
+              <UserButton />
+            ) : (
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs uppercase shadow-inner border border-primary/20">
+                FP
+              </div>
+            )}
           </div>
         </header>
         <main className="px-4 py-6 lg:px-8">{children}</main>

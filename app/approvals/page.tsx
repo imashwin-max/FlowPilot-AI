@@ -7,12 +7,17 @@ import { redirect } from "next/navigation";
 export const dynamic = "force-dynamic";
 
 export default async function ApprovalsPage() {
-  const { sessionClaims } = await auth();
-  let role = (sessionClaims?.metadata as { role?: string })?.role;
+  let role = "manager";
+  const hasClerkKeys = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
-  if (!role) {
-    const user = await currentUser();
-    role = (user?.publicMetadata?.role as string) || "employee";
+  if (hasClerkKeys) {
+    const { sessionClaims } = await auth();
+    role = (sessionClaims?.metadata as { role?: string })?.role || "";
+
+    if (!role) {
+      const user = await currentUser();
+      role = (user?.publicMetadata?.role as string) || "employee";
+    }
   }
 
   if (role !== "manager") {

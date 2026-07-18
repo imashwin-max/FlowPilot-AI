@@ -53,6 +53,11 @@ export async function assertManagerAuthorized(request: Request): Promise<NextRes
     return null;
   }
 
+  const hasClerkKeys = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+  if (!hasClerkKeys) {
+    return null;
+  }
+
   try {
     const { sessionClaims } = await auth();
     let role = (sessionClaims?.metadata as { role?: string })?.role;

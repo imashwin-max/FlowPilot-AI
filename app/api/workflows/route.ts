@@ -12,20 +12,29 @@ export async function GET(request: Request) {
       return NextResponse.json({ requests: await listWorkflows() });
     }
 
-    const { sessionClaims } = await auth();
-    let role = (sessionClaims?.metadata as { role?: string })?.role;
+    let role = "manager";
     let requesterFilter: string | undefined;
 
-    if (!role) {
-      const user = await currentUser();
-      role = (user?.publicMetadata?.role as string) || "employee";
-    }
+    const hasClerkKeys = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
-    if (role !== "manager") {
-      const user = await currentUser();
-      if (user) {
-        requesterFilter = `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.username || user.emailAddresses[0]?.emailAddress || "Demo User";
+    if (hasClerkKeys) {
+      const { sessionClaims } = await auth();
+      role = (sessionClaims?.metadata as { role?: string })?.role || "";
+
+      if (!role) {
+        const user = await currentUser();
+        role = (user?.publicMetadata?.role as string) || "employee";
       }
+
+      if (role !== "manager") {
+        const user = await currentUser();
+        if (user) {
+          requesterFilter = `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.username || user.emailAddresses[0]?.emailAddress || "Demo User";
+        }
+      }
+    } else {
+      role = "manager";
+      requesterFilter = undefined;
     }
 
     return NextResponse.json({ requests: await listWorkflows(requesterFilter) });
@@ -41,11 +50,6 @@ export async function POST(request: Request) {
   }
 
   try {
-    const user = await currentUser();
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const body = await request.json();
     if (!body.message || typeof body.message !== "string" || !body.message.trim()) {
       return NextResponse.json({ error: "message is required" }, { status: 400 });
@@ -54,7 +58,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: `message must be under ${MAX_MESSAGE_LENGTH} characters` }, { status: 400 });
     }
 
-    const requester = `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.username || user.emailAddresses[0]?.emailAddress || "Demo User";
+    let requester = "Demo User";
+    const hasClerkKeys = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
+    if (hasClerkKeys) {
+      const user = await currentUser();
+      if (!user) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      requester = `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.username || user.emailAddresses[0]?.emailAddress || "Demo User";
+    } else {
+      requester = body.requester || "Demo User";
+    }
     const result = await createWorkflow({ message: body.message, requester });
 
     if (result.status === "clarify") {

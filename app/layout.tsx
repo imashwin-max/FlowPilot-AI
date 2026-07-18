@@ -13,16 +13,22 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <ClerkProvider>
-      <html lang="en" suppressHydrationWarning>
-        <body className={inter.className}>
-          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-            {children}
-            <Toaster richColors position="top-right" />
-          </ThemeProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+  const hasClerkKeys = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
+  const mainContent = (
+    <html lang="en" suppressHydrationWarning>
+      <body className={inter.className}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          {children}
+          <Toaster richColors position="top-right" />
+        </ThemeProvider>
+      </body>
+    </html>
   );
+
+  if (hasClerkKeys) {
+    return <ClerkProvider>{mainContent}</ClerkProvider>;
+  }
+
+  return mainContent;
 }

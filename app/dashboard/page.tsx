@@ -11,20 +11,29 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const { sessionClaims } = await auth();
-  let role = (sessionClaims?.metadata as { role?: string })?.role;
+  let role = "manager";
   let requesterFilter: string | undefined;
 
-  if (!role) {
-    const user = await currentUser();
-    role = (user?.publicMetadata?.role as string) || "employee";
-  }
+  const hasClerkKeys = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
-  if (role !== "manager") {
-    const user = await currentUser();
-    if (user) {
-      requesterFilter = `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.username || user.emailAddresses[0]?.emailAddress || "Demo User";
+  if (hasClerkKeys) {
+    const { sessionClaims } = await auth();
+    role = (sessionClaims?.metadata as { role?: string })?.role || "";
+
+    if (!role) {
+      const user = await currentUser();
+      role = (user?.publicMetadata?.role as string) || "employee";
     }
+
+    if (role !== "manager") {
+      const user = await currentUser();
+      if (user) {
+        requesterFilter = `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.username || user.emailAddresses[0]?.emailAddress || "Demo User";
+      }
+    }
+  } else {
+    role = "manager";
+    requesterFilter = undefined;
   }
 
   const metrics = await getDashboardMetrics(requesterFilter);
