@@ -1,4 +1,4 @@
-import { Activity, CheckCircle2, Clock3, Inbox, XCircle, ArrowRight, Sparkles, Cpu, Clock, Zap } from "lucide-react";
+import { Activity, CheckCircle2, Clock3, Inbox, XCircle, ArrowRight, Sparkles, Cpu, Clock } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { DepartmentChart, StatusChart, TrendChart } from "@/components/charts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +8,6 @@ import { getDashboardMetrics } from "@/lib/workflows";
 import { formatDate, percentage } from "@/lib/utils";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -46,10 +45,7 @@ export default async function DashboardPage() {
   if (!clerkAuthenticated) {
     const cookieStore = await cookies();
     const mockRole = cookieStore.get("flowpilot_mock_role")?.value;
-    if (!mockRole) {
-      redirect("/sign-in");
-    }
-    role = mockRole;
+    role = mockRole || "manager";
     requesterFilter = role === "manager" ? undefined : "Demo Employee";
   }
 

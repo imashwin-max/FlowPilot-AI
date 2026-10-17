@@ -4,7 +4,6 @@ import { listWorkflows } from "@/lib/workflows";
 import type { WorkflowRequest } from "@/lib/types";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -42,10 +41,7 @@ export default async function RequestsPage() {
   if (!clerkAuthenticated) {
     const cookieStore = await cookies();
     const mockRole = cookieStore.get("flowpilot_mock_role")?.value;
-    if (!mockRole) {
-      redirect("/sign-in");
-    }
-    role = mockRole;
+    role = mockRole || "manager";
     requesterFilter = role === "manager" ? undefined : "Demo Employee";
   }
 

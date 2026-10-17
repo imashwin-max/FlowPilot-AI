@@ -33,10 +33,7 @@ export default async function ApprovalsPage() {
   if (!clerkAuthenticated) {
     const cookieStore = await cookies();
     const mockRole = cookieStore.get("flowpilot_mock_role")?.value;
-    if (!mockRole) {
-      redirect("/sign-in");
-    }
-    role = mockRole;
+    role = mockRole || "manager";
   }
 
   if (role !== "manager") {
