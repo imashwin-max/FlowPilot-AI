@@ -104,37 +104,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Link href="/chat" className="rounded-lg bg-primary px-4 py-2 text-xs font-bold uppercase tracking-wider text-primary-foreground hover:bg-primary/95 transition-all shadow-sm">
               New workflow
             </Link>
-            {hasClerkKeys ? (
-              <UserButton />
-            ) : (
-              <div className="relative">
-                <button
-                  onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs uppercase shadow-inner border border-primary/20 transition-all hover:bg-primary/20"
-                >
-                  {activeRole === "manager" ? "DM" : "DE"}
-                </button>
-                {profileDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 rounded-md border border-border bg-card p-1 shadow-lg z-50 text-xs">
-                    <div className="px-3 py-2 text-muted-foreground border-b border-border/50">
-                      Logged in as <span className="font-semibold text-foreground uppercase">{activeRole}</span> (Demo)
-                    </div>
-                    <button
-                      onClick={handleSwitchRole}
-                      className="w-full text-left px-3 py-2 hover:bg-muted/50 rounded-sm transition-colors text-foreground font-medium"
-                    >
-                      Switch to {activeRole === "manager" ? "Employee" : "Manager"}
-                    </button>
-                    <button
-                      onClick={handleSignOut}
-                      className="w-full text-left px-3 py-2 hover:bg-red-500/10 text-red-500 rounded-sm transition-colors font-medium border-t border-border/50"
-                    >
-                      Sign Out
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
+            <ProfileSection
+              hasClerkKeys={hasClerkKeys}
+              activeRole={activeRole}
+              profileDropdownOpen={profileDropdownOpen}
+              setProfileDropdownOpen={setProfileDropdownOpen}
+              handleSwitchRole={handleSwitchRole}
+              handleSignOut={handleSignOut}
+            />
           </div>
         </header>
         <main className="px-4 py-6 lg:px-8">{children}</main>
@@ -156,6 +133,118 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </Link>
         ))}
       </nav>
+    </div>
+  );
+}
+
+function ProfileSection({
+  hasClerkKeys,
+  activeRole,
+  profileDropdownOpen,
+  setProfileDropdownOpen,
+  handleSwitchRole,
+  handleSignOut
+}: {
+  hasClerkKeys: boolean;
+  activeRole: string;
+  profileDropdownOpen: boolean;
+  setProfileDropdownOpen: (open: boolean) => void;
+  handleSwitchRole: () => void;
+  handleSignOut: () => void;
+}) {
+  if (hasClerkKeys) {
+    return (
+      <ClerkProfileSection
+        activeRole={activeRole}
+        profileDropdownOpen={profileDropdownOpen}
+        setProfileDropdownOpen={setProfileDropdownOpen}
+        handleSwitchRole={handleSwitchRole}
+        handleSignOut={handleSignOut}
+      />
+    );
+  }
+
+  return (
+    <DemoProfileMenu
+      activeRole={activeRole}
+      profileDropdownOpen={profileDropdownOpen}
+      setProfileDropdownOpen={setProfileDropdownOpen}
+      handleSwitchRole={handleSwitchRole}
+      handleSignOut={handleSignOut}
+    />
+  );
+}
+
+function ClerkProfileSection({
+  activeRole,
+  profileDropdownOpen,
+  setProfileDropdownOpen,
+  handleSwitchRole,
+  handleSignOut
+}: {
+  activeRole: string;
+  profileDropdownOpen: boolean;
+  setProfileDropdownOpen: (open: boolean) => void;
+  handleSwitchRole: () => void;
+  handleSignOut: () => void;
+}) {
+  const { isSignedIn } = useUser();
+
+  if (isSignedIn) {
+    return <UserButton />;
+  }
+
+  return (
+    <DemoProfileMenu
+      activeRole={activeRole}
+      profileDropdownOpen={profileDropdownOpen}
+      setProfileDropdownOpen={setProfileDropdownOpen}
+      handleSwitchRole={handleSwitchRole}
+      handleSignOut={handleSignOut}
+    />
+  );
+}
+
+function DemoProfileMenu({
+  activeRole,
+  profileDropdownOpen,
+  setProfileDropdownOpen,
+  handleSwitchRole,
+  handleSignOut
+}: {
+  activeRole: string;
+  profileDropdownOpen: boolean;
+  setProfileDropdownOpen: (open: boolean) => void;
+  handleSwitchRole: () => void;
+  handleSignOut: () => void;
+}) {
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+        className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs uppercase shadow-inner border border-primary/20 transition-all hover:bg-primary/20"
+      >
+        {activeRole === "manager" ? "DM" : "DE"}
+      </button>
+      {profileDropdownOpen && (
+        <div className="absolute right-0 mt-2 w-48 rounded-md border border-border bg-card p-1 shadow-lg z-50 text-xs">
+          <div className="px-3 py-2 text-muted-foreground border-b border-border/50">
+            Logged in as <span className="font-semibold text-foreground uppercase">{activeRole}</span> (Demo)
+          </div>
+          <button
+            onClick={handleSwitchRole}
+            className="w-full text-left px-3 py-2 hover:bg-muted/50 rounded-sm transition-colors text-foreground font-medium"
+          >
+            Switch to {activeRole === "manager" ? "Employee" : "Manager"}
+          </button>
+          <button
+            onClick={handleSignOut}
+            className="w-full text-left px-3 py-2 hover:bg-red-500/10 text-red-500 rounded-sm transition-colors font-medium border-t border-border/50"
+          >
+            Sign Out
+          </button>
+        </div>
+      )}
     </div>
   );
 }

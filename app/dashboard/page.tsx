@@ -16,33 +16,64 @@ export default async function DashboardPage() {
   let role = "manager";
   let requesterFilter: string | undefined;
 
-  const hasClerkKeys = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+  const hasClerkKeys = !!(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY);
+  let clerkAuthenticated = false;
 
   if (hasClerkKeys) {
-    const { sessionClaims } = await auth();
-    role = (sessionClaims?.metadata as { role?: string })?.role || "";
+    try {
+      const { userId, sessionClaims } = await auth();
+      if (userId) {
+        clerkAuthenticated = true;
+        role = (sessionClaims?.metadata as { role?: string })?.role || "";
 
-    if (!role) {
-      const user = await currentUser();
-      role = (user?.publicMetadata?.role as string) || "employee";
-    }
+        if (!role) {
+          const user = await currentUser();
+          role = (user?.publicMetadata?.role as string) || "employee";
+        }
 
-    if (role !== "manager") {
-      const user = await currentUser();
-      if (user) {
-        requesterFilter = `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.username || user.emailAddresses[0]?.emailAddress || "Demo User";
+        if (role !== "manager") {
+          const user = await currentUser();
+          if (user) {
+            requesterFilter = `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.username || user.emailAddresses[0]?.emailAddress || "Demo User";
+          }
+        }
       }
+    } catch (authError) {
+      console.warn("[dashboard] Clerk auth check failed, falling back to mock role:", authError);
     }
-  } else {
+  }
+
+  if (!clerkAuthenticated) {
     const cookieStore = await cookies();
-    role = cookieStore.get("flowpilot_mock_role")?.value || "";
-    if (!role) {
+    const mockRole = cookieStore.get("flowpilot_mock_role")?.value;
+    if (!mockRole) {
       redirect("/sign-in");
     }
+    role = mockRole;
     requesterFilter = role === "manager" ? undefined : "Demo Employee";
   }
 
-  const metrics = await getDashboardMetrics(requesterFilter);
+  let metrics;
+  try {
+    metrics = await getDashboardMetrics(requesterFilter);
+  } catch (metricsError) {
+    console.error("[dashboard] Failed to load dashboard metrics, falling back to default:", metricsError);
+    metrics = {
+      total: 0,
+      pending: 0,
+      approved: 0,
+      rejected: 0,
+      departmentData: [],
+      statusData: [
+        { name: "Pending", value: 0 },
+        { name: "Approved", value: 0 },
+        { name: "Rejected", value: 0 }
+      ],
+      trendData: [],
+      activities: [],
+      requests: []
+    };
+  }
   const approvalRate = percentage(metrics.approved, metrics.total);
 
   if (role === "manager") {

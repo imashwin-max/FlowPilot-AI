@@ -67,21 +67,25 @@ export async function assertManagerAuthorized(request: Request): Promise<NextRes
     return null;
   }
 
-  const hasClerkKeys = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
-  if (!hasClerkKeys) {
-    try {
-      const cookieStore = await cookies();
-      const role = cookieStore.get("flowpilot_mock_role")?.value || "";
-      if (role !== "manager") {
-        return NextResponse.json({ error: "Not authorized to perform this action. Managers only." }, { status: 403 });
-      }
+  let mockRole = "";
+  try {
+    const cookieStore = await cookies();
+    mockRole = cookieStore.get("flowpilot_mock_role")?.value || "";
+    if (mockRole === "manager") {
       return null;
-    } catch (error) {
-      // cookies() throws outside a real request context (e.g. unit tests).
-      // Fail closed - treat as unauthenticated rather than crashing.
-      console.warn("[security] Could not read mock role cookie, denying by default:", error);
+    }
+  } catch {
+    if (configuredCode) {
       return NextResponse.json({ error: "Not authorized to perform this action." }, { status: 401 });
     }
+  }
+
+  const hasClerkKeys = !!(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY);
+  if (!hasClerkKeys) {
+    if (configuredCode) {
+      return NextResponse.json({ error: "Not authorized to perform this action." }, { status: 401 });
+    }
+    return NextResponse.json({ error: "Not authorized to perform this action. Managers only." }, { status: 403 });
   }
 
   try {

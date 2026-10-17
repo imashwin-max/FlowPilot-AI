@@ -10,8 +10,22 @@ let middlewareExport;
 
 if (hasClerkKeys) {
   middlewareExport = clerkMiddleware(async (auth, request) => {
+    // If user has chosen a demo mode profile, permit access
+    const mockRole = request.cookies.get("flowpilot_mock_role")?.value;
+    if (mockRole) {
+      return NextResponse.next();
+    }
+
     if (!isPublicRoute(request)) {
-      await auth.protect();
+      try {
+        await auth.protect();
+      } catch (err) {
+        // If auth.protect() throws (e.g., handshake missing in production), redirect to /sign-in
+        console.warn("[middleware] auth.protect error, redirecting to /sign-in:", err);
+        const signInUrl = new URL("/sign-in", request.url);
+        signInUrl.searchParams.set("redirect_url", request.url);
+        return NextResponse.redirect(signInUrl);
+      }
     }
   });
 } else {

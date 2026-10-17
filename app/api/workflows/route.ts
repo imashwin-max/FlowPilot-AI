@@ -15,24 +15,34 @@ export async function GET(request: Request) {
     let role = "manager";
     let requesterFilter: string | undefined;
 
-    const hasClerkKeys = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+    const hasClerkKeys = !!(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY);
+    let clerkAuthenticated = false;
 
     if (hasClerkKeys) {
-      const { sessionClaims } = await auth();
-      role = (sessionClaims?.metadata as { role?: string })?.role || "";
+      try {
+        const { userId, sessionClaims } = await auth();
+        if (userId) {
+          clerkAuthenticated = true;
+          role = (sessionClaims?.metadata as { role?: string })?.role || "";
 
-      if (!role) {
-        const user = await currentUser();
-        role = (user?.publicMetadata?.role as string) || "employee";
-      }
+          if (!role) {
+            const user = await currentUser();
+            role = (user?.publicMetadata?.role as string) || "employee";
+          }
 
-      if (role !== "manager") {
-        const user = await currentUser();
-        if (user) {
-          requesterFilter = `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.username || user.emailAddresses[0]?.emailAddress || "Demo User";
+          if (role !== "manager") {
+            const user = await currentUser();
+            if (user) {
+              requesterFilter = `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.username || user.emailAddresses[0]?.emailAddress || "Demo User";
+            }
+          }
         }
+      } catch (authError) {
+        console.warn("[api/workflows] Clerk auth check failed, falling back to mock role:", authError);
       }
-    } else {
+    }
+
+    if (!clerkAuthenticated) {
       const cookieStore = await cookies();
       role = cookieStore.get("flowpilot_mock_role")?.value || "manager";
       requesterFilter = role === "manager" ? undefined : "Demo Employee";
@@ -59,16 +69,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: `message must be under ${MAX_MESSAGE_LENGTH} characters` }, { status: 400 });
     }
 
-    let requester = "Demo User";
-    const hasClerkKeys = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+    let requester = body.requester || "Demo User";
+    const hasClerkKeys = !!(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY);
 
     if (hasClerkKeys) {
-      const user = await currentUser();
-      if (!user) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      try {
+        const user = await currentUser();
+        if (user) {
+          requester = `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.username || user.emailAddresses[0]?.emailAddress || requester;
+        }
+      } catch (authError) {
+        console.warn("[api/workflows] Could not read current user, using fallback requester:", authError);
       }
-      requester = `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.username || user.emailAddresses[0]?.emailAddress || "Demo User";
-    } else {
+    }
+
+    if (requester === "Demo User") {
       const cookieStore = await cookies();
       const role = cookieStore.get("flowpilot_mock_role")?.value || "manager";
       requester = body.requester || (role === "manager" ? "Demo Manager" : "Demo Employee");

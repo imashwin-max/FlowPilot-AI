@@ -130,15 +130,23 @@ export async function listWorkflows(requesterFilter?: string): Promise<WorkflowR
     return demoRequests;
   }
 
-  let query = supabase.from("workflow_requests").select("*");
-  if (requesterFilter) {
-    query = query.eq("requester", requesterFilter);
+  try {
+    let query = supabase.from("workflow_requests").select("*");
+    if (requesterFilter) {
+      query = query.eq("requester", requesterFilter);
+    }
+
+    const { data, error } = await query.order("created_at", { ascending: false });
+
+    if (error) {
+      console.warn("[supabase] Error fetching workflows, falling back to demo data:", error.message);
+      return requesterFilter ? demoRequests.filter((req) => req.requester === requesterFilter) : demoRequests;
+    }
+    return (data || []) as WorkflowRequest[];
+  } catch (err) {
+    console.warn("[supabase] Exception in listWorkflows, falling back to demo data:", err);
+    return requesterFilter ? demoRequests.filter((req) => req.requester === requesterFilter) : demoRequests;
   }
-
-  const { data, error } = await query.order("created_at", { ascending: false });
-
-  if (error) throw error;
-  return data as WorkflowRequest[];
 }
 
 export async function listActivities(requesterFilter?: string) {
@@ -151,21 +159,29 @@ export async function listActivities(requesterFilter?: string) {
     return demoActivities;
   }
 
-  const { data, error } = await supabase
-    .from("activity_logs")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(100);
+  try {
+    const { data, error } = await supabase
+      .from("activity_logs")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(100);
 
-  if (error) throw error;
+    if (error) {
+      console.warn("[supabase] Error fetching activities, falling back to demo data:", error.message);
+      return demoActivities;
+    }
 
-  if (requesterFilter) {
-    const myWorkflows = await listWorkflows(requesterFilter);
-    const myIds = myWorkflows.map((w) => w.id);
-    return data.filter((activity) => activity.workflow_id && myIds.includes(activity.workflow_id)).slice(0, 10);
+    if (requesterFilter) {
+      const myWorkflows = await listWorkflows(requesterFilter);
+      const myIds = myWorkflows.map((w) => w.id);
+      return (data || []).filter((activity) => activity.workflow_id && myIds.includes(activity.workflow_id)).slice(0, 10);
+    }
+
+    return (data || []).slice(0, 10);
+  } catch (err) {
+    console.warn("[supabase] Exception in listActivities, falling back to demo data:", err);
+    return demoActivities;
   }
-
-  return data.slice(0, 10);
 }
 
 export async function createWorkflow(input: { message: string; requester?: string }): Promise<

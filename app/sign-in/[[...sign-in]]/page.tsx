@@ -44,9 +44,29 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8 flex justify-center">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md space-y-6 flex flex-col items-center">
         <SignIn />
+
+        <div className="w-full pt-4 border-t border-border/50 text-center">
+          <p className="text-xs text-muted-foreground mb-3 font-medium">
+            Or skip Clerk sign-in and explore with a demo profile:
+          </p>
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={() => handleMockLogin("manager")}
+              className="flex-1 rounded-lg border border-border bg-card py-2.5 px-3 text-xs font-semibold text-foreground hover:bg-muted/50 transition-all shadow-sm"
+            >
+              Demo Manager
+            </button>
+            <button
+              onClick={() => handleMockLogin("employee")}
+              className="flex-1 rounded-lg border border-border bg-card py-2.5 px-3 text-xs font-semibold text-foreground hover:bg-muted/50 transition-all shadow-sm"
+            >
+              Demo Employee
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
